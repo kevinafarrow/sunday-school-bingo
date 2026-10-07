@@ -13,6 +13,7 @@ import { score } from './src/win.js';
 import { statusLine, buildShareText } from './src/share.js';
 import { loadGame, saveGame, clearGame } from './src/storage.js';
 import { wordsAsChunks } from './src/text.js';
+import { seasonFor } from './src/liturgy.js';
 import { burst } from './src/confetti.js';
 
 const LONG_PRESS_MS = 400;
@@ -346,9 +347,22 @@ function updateBanner(result) {
     : `${result.lines.length === 1 ? 'One line' : `${result.lines.length} lines`} · ${result.count}/25 squares`;
 }
 
+/**
+ * Confetti in the colour the card is currently wearing: the accent, a wash of
+ * it, and the ink, read straight off the stylesheet so the season stays the
+ * single source of colour.
+ */
+function seasonPalette() {
+  const style = getComputedStyle(document.documentElement);
+  const read = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+
+  const accent = read('--accent', '#3f6b4a');
+  return [accent, accent, read('--ink', '#1a1714'), read('--rule', '#cdc5b4')];
+}
+
 function celebrate(result) {
   stopConfetti();
-  stopConfetti = burst(el.confetti);
+  stopConfetti = burst(el.confetti, seasonPalette());
   buzz([0, 40, 60, 90]);
 
   updateBanner(result);
@@ -359,10 +373,21 @@ function celebrate(result) {
 
 let pressTimer = 0;
 let peeking = false;
-let swallowClick = false;
+
+/**
+ * Whether the press currently in progress ever became a peek.
+ *
+ * Suppression is keyed to the whole interaction rather than to the release,
+ * because the release is not the only way a press ends: let a finger drift off
+ * the card while reading a square and the browser fires pointerleave, which
+ * would otherwise drop the peek and let the following click mark the very
+ * square you were trying to read. Cleared on the next pointerdown.
+ */
+let pressWasPeek = false;
 
 function showPeek(index) {
   peeking = true;
+  pressWasPeek = true;
   el.peekText.textContent = state.cells[index];
   el.peek.hidden = false;
   buzz(8);
@@ -385,23 +410,14 @@ function wireCard() {
 
     const index = Number(cell.dataset.index);
     cancelPress();
+    pressWasPeek = false;
     pressTimer = setTimeout(() => showPeek(index), LONG_PRESS_MS);
   });
 
-  // Releasing in place ends a peek and swallows the click it would otherwise
-  // produce, so reading a square never also marks it.
-  el.card.addEventListener('pointerup', () => {
-    cancelPress();
-    if (peeking) {
-      hidePeek();
-      swallowClick = true;
-    }
-  });
-
-  // Dragging off the card or losing the pointer just ends the press. No click
-  // follows those, so nothing needs swallowing — and setting the flag here
-  // would eat the next legitimate tap instead.
-  for (const type of ['pointercancel', 'pointerleave']) {
+  // Any way a press can end: release, cancellation, or the pointer leaving the
+  // card. All of them close the peek; none of them clear pressWasPeek, so the
+  // click that may follow is still suppressed.
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
     el.card.addEventListener(type, () => {
       cancelPress();
       if (peeking) hidePeek();
@@ -409,8 +425,7 @@ function wireCard() {
   }
 
   el.card.addEventListener('click', (event) => {
-    if (swallowClick) {
-      swallowClick = false;
+    if (pressWasPeek) {
       event.preventDefault();
       return;
     }
@@ -510,8 +525,18 @@ function fail(message) {
   el.error.hidden = false;
 }
 
+/**
+ * Vest the page for today. The season is the only thing that chooses a colour;
+ * the stylesheet does the rest off this one attribute.
+ */
+function applySeason() {
+  document.documentElement.dataset.season = seasonFor();
+}
+
 async function main() {
   let text;
+
+  applySeason();
 
   try {
     const response = await fetch('squares.txt', { cache: 'no-cache' });

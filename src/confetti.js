@@ -3,15 +3,7 @@
  * that you're listening to something while you play.
  */
 
-const COLORS = [
-  'hsl(44 92% 60%)',
-  'hsl(36 88% 48%)',
-  'hsl(278 70% 62%)',
-  'hsl(350 72% 58%)',
-  'hsl(212 72% 58%)',
-  'hsl(158 62% 48%)',
-  'hsl(40 100% 92%)',
-];
+const DEFAULT_COLORS = ['#3f6b4a', '#1a1714', '#cdc5b4'];
 
 const COUNT = 140;
 const DURATION = 2600;
@@ -24,10 +16,12 @@ const GRAVITY = 0.00042;
  * motion.
  *
  * @param {HTMLCanvasElement} canvas
+ * @param {string[]} [colors] the season's palette; defaults to Ordinary Time
  * @returns {() => void}
  */
-export function burst(canvas) {
+export function burst(canvas, colors = DEFAULT_COLORS) {
   const noop = () => {};
+  const palette = colors.length > 0 ? colors : DEFAULT_COLORS;
 
   if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return noop;
@@ -59,7 +53,7 @@ export function burst(canvas) {
       size: 5 + Math.random() * 7,
       tilt: Math.random() * Math.PI,
       spin: (Math.random() - 0.5) * 0.22,
-      color: COLORS[(Math.random() * COLORS.length) | 0],
+      color: palette[(Math.random() * palette.length) | 0],
     });
   }
 

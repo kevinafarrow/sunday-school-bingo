@@ -1,37 +1,86 @@
-/* Sunday School Bingo — stained glass.
+/* Sunday School Bingo — printed card, vested for the season.
  *
- * The central legibility trick: unmarked panes are the PALE ones with dark ink,
- * because those are the squares you still need to read. Marking a square lights
- * it up into saturated glass, and a winning line burns gold. So the card gets
- * more vivid as it fills, and never at the cost of the text you're hunting for.
+ * Flat throughout: solid fills, hairline rules, no gradients, bevels, glows or
+ * shadows. The card should read as paper, not as an object with depth.
+ *
+ * Exactly one colour varies, and it varies by the date: `data-season` on <html>
+ * selects the accent, and everything coloured — marks, the winning line, the
+ * title rule, the confetti — derives from it. Three steps of state, one hue:
+ *   unmarked  paper, dark ink
+ *   marked    a wash of the accent
+ *   winning   the accent, solid
  */
 
-/* ---------- tokens ---------- */
+/* ---------- the seasons ---------- */
 
 :root {
-  --lead: #0d0a10;
-  --lead-soft: #1b1520;
-  --nave: #140f14;
-
-  --gold: 44;
-  --ink: #f3ece4;
-  --ink-dim: #a99db0;
-
-  --gap: clamp(4px, 1.3vmin, 8px);
-  --radius: clamp(3px, 1vmin, 8px);
-
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
-    Georgia, "Times New Roman", serif;
-  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  /* Ordinary Time, until the date says otherwise. */
+  --accent-light: #3f6b4a;
+  --accent-dark: #7fbf8f;
 }
 
-/* The five panes of glass, in rough liturgical order. */
-.pane--0 { --h: 278; } /* violet  */
-.pane--1 { --h: 350; } /* oxblood */
-.pane--2 { --h: 212; } /* sapphire*/
-.pane--3 { --h: 158; } /* emerald */
-.pane--4 { --h: 32; }  /* amber   */
+[data-season='advent'],
+[data-season='lent'] {
+  --accent-light: #5e4089; /* violet */
+  --accent-dark: #b9a0e0;
+}
+
+[data-season='gaudete'],
+[data-season='laetare'] {
+  --accent-light: #a6446b; /* rose */
+  --accent-dark: #e8a0bd;
+}
+
+[data-season='christmas'],
+[data-season='easter'] {
+  --accent-light: #8a6420; /* white vestments, gold trim */
+  --accent-dark: #e0b457;
+}
+
+[data-season='pentecost'],
+[data-season='palm-sunday'],
+[data-season='good-friday'] {
+  --accent-light: #a62f2a; /* red */
+  --accent-dark: #e8807a;
+}
+
+/* ---------- light and dark ---------- */
+
+:root {
+  --accent: var(--accent-light);
+
+  --page: #e7e1d5;
+  --paper: #f7f4ec;
+  --ink: #1a1714;
+  --ink-soft: #6d6456;
+  --rule: #cdc5b4;
+  --on-accent: #f7f4ec;
+
+  --scrim: rgb(231 225 213 / 0.94);
+  --wash: 26%;
+
+  --gap: 1px;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
+    Georgia, 'Times New Roman', serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: var(--accent-dark);
+
+    --page: #0e0d0b;
+    --paper: #1b1916;
+    --ink: #ede7dc;
+    --ink-soft: #8f8777;
+    --rule: #3a352d;
+    --on-accent: #14120f;
+
+    --scrim: rgb(14 13 11 / 0.94);
+    --wash: 30%;
+  }
+}
 
 /* ---------- frame ---------- */
 
@@ -47,11 +96,7 @@ body {
 }
 
 body {
-  background: var(--nave);
-  background-image:
-    radial-gradient(120% 80% at 50% -10%, hsl(280 40% 22% / 0.75), transparent 60%),
-    radial-gradient(90% 60% at 50% 110%, hsl(212 50% 20% / 0.6), transparent 65%);
-  background-attachment: fixed;
+  background: var(--page);
   color: var(--ink);
   font-family: var(--sans);
   -webkit-text-size-adjust: 100%;
@@ -63,10 +108,10 @@ body {
   flex-direction: column;
   gap: clamp(6px, 1.4vmin, 14px);
   height: 100dvh;
-  padding: calc(env(safe-area-inset-top, 0px) + clamp(8px, 2vmin, 20px))
-    calc(env(safe-area-inset-right, 0px) + clamp(8px, 2vmin, 20px))
-    calc(env(safe-area-inset-bottom, 0px) + clamp(8px, 2vmin, 20px))
-    calc(env(safe-area-inset-left, 0px) + clamp(8px, 2vmin, 20px));
+  padding: calc(env(safe-area-inset-top, 0px) + clamp(10px, 2.2vmin, 22px))
+    calc(env(safe-area-inset-right, 0px) + clamp(10px, 2.2vmin, 22px))
+    calc(env(safe-area-inset-bottom, 0px) + clamp(10px, 2.2vmin, 22px))
+    calc(env(safe-area-inset-left, 0px) + clamp(10px, 2.2vmin, 22px));
   margin: 0 auto;
   max-width: min(760px, 100%);
 }
@@ -80,6 +125,8 @@ body {
   justify-content: space-between;
   gap: 8px 12px;
   flex: 0 0 auto;
+  padding-bottom: clamp(5px, 1.2vmin, 10px);
+  border-bottom: 2px solid var(--accent);
 }
 
 .masthead__title {
@@ -89,8 +136,6 @@ body {
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.05;
-  color: var(--ink);
-  text-shadow: 0 0 22px hsl(var(--gold) 90% 60% / 0.3);
 }
 
 .masthead__actions {
@@ -100,70 +145,66 @@ body {
 
 .btn {
   padding: 0.5em 0.95em;
-  border: 1px solid hsl(280 30% 60% / 0.35);
-  border-radius: 999px;
-  background: hsl(280 30% 90% / 0.07);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: transparent;
   color: var(--ink);
   font: inherit;
   font-size: clamp(0.78rem, 3.2vw, 0.95rem);
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  transition: background 0.12s linear, border-color 0.12s linear;
 }
 
 .btn:hover {
-  background: hsl(280 30% 90% / 0.14);
-  border-color: hsl(280 40% 70% / 0.55);
-}
-
-.btn:active {
-  transform: scale(0.96);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn:focus-visible {
-  outline: 2px solid hsl(var(--gold) 90% 62%);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.btn--gold {
-  background: linear-gradient(hsl(var(--gold) 92% 62%), hsl(36 88% 48%));
-  border-color: hsl(var(--gold) 80% 70%);
-  color: hsl(30 60% 12%);
-  font-weight: 650;
+.btn--accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
 }
 
-.btn--gold:hover {
-  background: linear-gradient(hsl(var(--gold) 95% 68%), hsl(36 90% 52%));
-}
-
-.btn--ghost {
-  background: transparent;
+.btn--accent:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+  filter: brightness(1.08);
 }
 
 .tally {
   flex: 0 0 auto;
   margin: 0;
-  font-size: clamp(0.72rem, 3vw, 0.85rem);
-  letter-spacing: 0.1em;
+  font-size: clamp(0.68rem, 2.8vw, 0.8rem);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--ink-soft);
 }
 
 .tally--bingo {
-  color: hsl(var(--gold) 90% 66%);
+  color: var(--accent);
+  font-weight: 650;
 }
 
 .hint {
   flex: 0 0 auto;
   margin: 0;
   text-align: center;
-  font-size: clamp(0.66rem, 2.7vw, 0.78rem);
-  color: var(--ink-dim);
-  opacity: 0.75;
+  font-size: clamp(0.64rem, 2.6vw, 0.76rem);
+  color: var(--ink-soft);
 }
 
 /* ---------- the card ---------- */
 
+/* The rules are the card's own background showing through 1px gaps, which keeps
+   them crisp at any pixel ratio instead of doubling up on shared edges. */
 .card {
   flex: 1 1 auto;
   min-height: 0;
@@ -172,12 +213,8 @@ body {
   grid-template-rows: repeat(5, 1fr);
   gap: var(--gap);
   padding: var(--gap);
-  border-radius: calc(var(--radius) + var(--gap));
-  background: var(--lead);
-  background-image: linear-gradient(var(--lead-soft), var(--lead));
-  box-shadow:
-    inset 0 0 0 1px hsl(280 20% 60% / 0.14),
-    0 18px 50px hsl(0 0% 0% / 0.55);
+  background: var(--rule);
+  border: 1px solid var(--rule);
 }
 
 .cell {
@@ -186,12 +223,14 @@ body {
   place-items: center;
   overflow: hidden;
   min-width: 0;
-  padding: clamp(2px, 0.8vmin, 7px);
+  padding: clamp(3px, 1vmin, 8px);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
   font-family: inherit;
   font-weight: 560;
-  line-height: 1.14;
+  line-height: 1.16;
   text-align: center;
   text-wrap: balance;
   cursor: pointer;
@@ -199,19 +238,7 @@ body {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: manipulation;
-
-  /* Unmarked: lit glass, dark ink — the state you actually have to read, so it
-     gets the contrast. Deep enough to read as coloured glass rather than
-     pastel paper, light enough to carry near-black text. */
-  background:
-    radial-gradient(135% 95% at 26% 6%, hsl(var(--h) 90% 96% / 0.85), transparent 50%),
-    linear-gradient(158deg, hsl(var(--h) 72% 80%), hsl(var(--h) 64% 63%));
-  color: hsl(var(--h) 85% 11%);
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--h) 85% 94% / 0.6),
-    inset 0 -10px 20px hsl(var(--h) 70% 34% / 0.28);
-  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease,
-    transform 0.1s ease;
+  transition: background 0.12s linear, color 0.12s linear;
 }
 
 .cell__text {
@@ -236,59 +263,23 @@ body {
 }
 
 .cell:focus-visible {
-  outline: 2px solid hsl(var(--gold) 90% 62%);
+  outline: 2px solid var(--accent);
   outline-offset: -3px;
 }
 
-.cell:active {
-  transform: scale(0.97);
-}
-
-/* Marked: the sun comes through — saturated and glowing, which reads as a
-   clearly different state from the lit-but-pale unmarked pane. */
 .cell.is-marked {
-  background:
-    radial-gradient(130% 90% at 28% 8%, hsl(var(--h) 95% 68% / 0.6), transparent 58%),
-    linear-gradient(158deg, hsl(var(--h) 82% 40%), hsl(var(--h) 88% 23%));
-  color: hsl(var(--h) 75% 97%);
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--h) 95% 72% / 0.6),
-    inset 0 0 28px hsl(var(--h) 100% 58% / 0.34),
-    0 0 22px hsl(var(--h) 95% 52% / 0.45);
-  text-shadow: 0 1px 12px hsl(var(--h) 95% 14% / 0.9);
+  background: color-mix(in srgb, var(--accent) var(--wash), var(--paper));
+  color: var(--ink);
 }
 
-/* a winning line burns gold */
 .cell.is-winning {
-  background:
-    radial-gradient(130% 90% at 28% 8%, hsl(48 100% 86% / 0.8), transparent 58%),
-    linear-gradient(160deg, hsl(var(--gold) 92% 60%), hsl(34 90% 42%));
-  color: hsl(32 70% 12%);
-  box-shadow:
-    inset 0 0 0 1px hsl(48 100% 82% / 0.85),
-    inset 0 0 26px hsl(48 100% 70% / 0.45),
-    0 0 28px hsl(var(--gold) 95% 58% / 0.65);
-  text-shadow: none;
-  animation: ignite 0.5s ease-out;
-}
-
-@keyframes ignite {
-  0% { transform: scale(1); filter: brightness(1); }
-  45% { transform: scale(1.06); filter: brightness(1.5); }
-  100% { transform: scale(1); filter: brightness(1); }
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .cell--free {
   font-family: var(--serif);
   letter-spacing: 0.04em;
-}
-
-.cell--free::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 60% at 50% 50%, hsl(48 100% 80% / 0.25), transparent 70%);
-  pointer-events: none;
 }
 
 /* ---------- long-press peek ---------- */
@@ -304,10 +295,7 @@ body {
   place-items: center;
   padding: 8vw;
   pointer-events: none;
-  background: hsl(270 40% 4% / 0.82);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  animation: fade-in 0.14s ease-out;
+  background: var(--scrim);
 }
 
 .peek__text {
@@ -319,7 +307,6 @@ body {
   text-align: center;
   text-wrap: balance;
   color: var(--ink);
-  text-shadow: 0 0 40px hsl(280 80% 60% / 0.5);
 }
 
 /* ---------- win banner ---------- */
@@ -332,12 +319,11 @@ body {
   width: min(420px, calc(100vw - 28px));
   transform: translateX(-50%);
   padding: 18px 20px 16px;
-  border: 1px solid hsl(var(--gold) 70% 60% / 0.5);
-  border-radius: 18px;
-  background: linear-gradient(hsl(280 35% 14% / 0.97), hsl(270 40% 9% / 0.97));
-  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.65), 0 0 40px hsl(var(--gold) 90% 50% / 0.2);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: var(--paper);
   text-align: center;
-  animation: rise 0.34s cubic-bezier(0.18, 0.9, 0.3, 1.2);
+  animation: rise 0.28s ease-out;
 }
 
 .banner__word {
@@ -347,14 +333,13 @@ body {
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1;
-  color: hsl(var(--gold) 92% 64%);
-  text-shadow: 0 0 30px hsl(var(--gold) 95% 55% / 0.6);
+  color: var(--accent);
 }
 
 .banner__sub {
   margin: 6px 0 14px;
   font-size: 0.85rem;
-  color: var(--ink-dim);
+  color: var(--ink-soft);
 }
 
 .banner__actions {
@@ -364,13 +349,14 @@ body {
 }
 
 @keyframes rise {
-  from { opacity: 0; transform: translate(-50%, 28px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 /* ---------- confetti, toast, states ---------- */
@@ -392,13 +378,13 @@ body {
   transform: translateX(-50%);
   margin: 0;
   padding: 10px 18px;
-  border-radius: 999px;
-  background: hsl(270 30% 96%);
-  color: hsl(270 40% 12%);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
   font-size: 0.85rem;
   font-weight: 560;
-  box-shadow: 0 10px 30px hsl(0 0% 0% / 0.5);
-  animation: rise 0.22s ease-out;
+  animation: rise 0.2s ease-out;
 }
 
 .loading,
@@ -410,14 +396,14 @@ body {
   place-content: center;
   gap: 10px;
   padding: 10vw;
-  background: var(--nave);
+  background: var(--page);
   text-align: center;
 }
 
 .loading {
   font-family: var(--serif);
   font-size: 1.1rem;
-  color: var(--ink-dim);
+  color: var(--ink-soft);
 }
 
 .error__title {
@@ -429,7 +415,7 @@ body {
 .error__body {
   margin: 0;
   max-width: 34ch;
-  color: var(--ink-dim);
+  color: var(--ink-soft);
   line-height: 1.5;
 }
 

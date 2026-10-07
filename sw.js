@@ -9,7 +9,7 @@
  * Bump CACHE_VERSION when the shell changes so friends don't sit on an old copy.
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `sunday-school-bingo-${CACHE_VERSION}`;
 
 const SHELL = [
@@ -30,6 +30,7 @@ const SHELL = [
   './src/share.js',
   './src/storage.js',
   './src/text.js',
+  './src/liturgy.js',
   './src/confetti.js',
 ];
 
