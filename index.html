@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sunday School Bingo</title>
+    <meta name="description" content="Bingo for the podcast. Tap a square when it happens." />
+    <meta name="theme-color" content="#140f14" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta property="og:title" content="Sunday School Bingo" />
+    <meta property="og:description" content="Bingo for the podcast. Tap a square when it happens." />
+    <meta property="og:type" content="website" />
+
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <header class="masthead">
+        <h1 class="masthead__title">Sunday School Bingo</h1>
+        <div class="masthead__actions">
+          <button type="button" class="btn" id="share-btn">Share</button>
+          <button type="button" class="btn" id="new-btn">New Card</button>
+        </div>
+      </header>
+
+      <p class="tally" id="tally" aria-live="polite">&nbsp;</p>
+
+      <!-- A group rather than role="grid": the cells are a flat CSS grid with no
+           row elements, and a grid without rows is broken ARIA. The buttons
+           carry their own labels and pressed state. -->
+      <main class="card" id="card" role="group" aria-label="Bingo card" aria-busy="true"></main>
+
+      <p class="hint" id="hint">Tap a square when it happens · press and hold to read it</p>
+    </div>
+
+    <div class="loading" id="loading">Lighting the windows…</div>
+
+    <div class="error" id="error" hidden>
+      <h2 class="error__title">Can't build a card</h2>
+      <p class="error__body" id="error-body"></p>
+    </div>
+
+    <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+    <div class="peek" id="peek" hidden aria-hidden="true">
+      <p class="peek__text" id="peek-text"></p>
+    </div>
+
+    <div class="banner" id="banner" hidden>
+      <p class="banner__word" id="banner-word">BINGO!</p>
+      <p class="banner__sub" id="banner-sub"></p>
+      <div class="banner__actions">
+        <button type="button" class="btn btn--gold" id="banner-share">Copy result</button>
+        <button type="button" class="btn btn--ghost" id="banner-close">Keep playing</button>
+      </div>
+    </div>
+
+    <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

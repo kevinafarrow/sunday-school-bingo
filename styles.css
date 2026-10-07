@@ -1,0 +1,461 @@
+/* Sunday School Bingo — stained glass.
+ *
+ * The central legibility trick: unmarked panes are the PALE ones with dark ink,
+ * because those are the squares you still need to read. Marking a square lights
+ * it up into saturated glass, and a winning line burns gold. So the card gets
+ * more vivid as it fills, and never at the cost of the text you're hunting for.
+ */
+
+/* ---------- tokens ---------- */
+
+:root {
+  --lead: #0d0a10;
+  --lead-soft: #1b1520;
+  --nave: #140f14;
+
+  --gold: 44;
+  --ink: #f3ece4;
+  --ink-dim: #a99db0;
+
+  --gap: clamp(4px, 1.3vmin, 8px);
+  --radius: clamp(3px, 1vmin, 8px);
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* The five panes of glass, in rough liturgical order. */
+.pane--0 { --h: 278; } /* violet  */
+.pane--1 { --h: 350; } /* oxblood */
+.pane--2 { --h: 212; } /* sapphire*/
+.pane--3 { --h: 158; } /* emerald */
+.pane--4 { --h: 32; }  /* amber   */
+
+/* ---------- frame ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--nave);
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, hsl(280 40% 22% / 0.75), transparent 60%),
+    radial-gradient(90% 60% at 50% 110%, hsl(212 50% 20% / 0.6), transparent 65%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.4vmin, 14px);
+  height: 100dvh;
+  padding: calc(env(safe-area-inset-top, 0px) + clamp(8px, 2vmin, 20px))
+    calc(env(safe-area-inset-right, 0px) + clamp(8px, 2vmin, 20px))
+    calc(env(safe-area-inset-bottom, 0px) + clamp(8px, 2vmin, 20px))
+    calc(env(safe-area-inset-left, 0px) + clamp(8px, 2vmin, 20px));
+  margin: 0 auto;
+  max-width: min(760px, 100%);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex: 0 0 auto;
+}
+
+.masthead__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 5.2vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  color: var(--ink);
+  text-shadow: 0 0 22px hsl(var(--gold) 90% 60% / 0.3);
+}
+
+.masthead__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 0.5em 0.95em;
+  border: 1px solid hsl(280 30% 60% / 0.35);
+  border-radius: 999px;
+  background: hsl(280 30% 90% / 0.07);
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(0.78rem, 3.2vw, 0.95rem);
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+}
+
+.btn:hover {
+  background: hsl(280 30% 90% / 0.14);
+  border-color: hsl(280 40% 70% / 0.55);
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn:focus-visible {
+  outline: 2px solid hsl(var(--gold) 90% 62%);
+  outline-offset: 2px;
+}
+
+.btn--gold {
+  background: linear-gradient(hsl(var(--gold) 92% 62%), hsl(36 88% 48%));
+  border-color: hsl(var(--gold) 80% 70%);
+  color: hsl(30 60% 12%);
+  font-weight: 650;
+}
+
+.btn--gold:hover {
+  background: linear-gradient(hsl(var(--gold) 95% 68%), hsl(36 90% 52%));
+}
+
+.btn--ghost {
+  background: transparent;
+}
+
+.tally {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: clamp(0.72rem, 3vw, 0.85rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.tally--bingo {
+  color: hsl(var(--gold) 90% 66%);
+}
+
+.hint {
+  flex: 0 0 auto;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.66rem, 2.7vw, 0.78rem);
+  color: var(--ink-dim);
+  opacity: 0.75;
+}
+
+/* ---------- the card ---------- */
+
+.card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: var(--gap);
+  padding: var(--gap);
+  border-radius: calc(var(--radius) + var(--gap));
+  background: var(--lead);
+  background-image: linear-gradient(var(--lead-soft), var(--lead));
+  box-shadow:
+    inset 0 0 0 1px hsl(280 20% 60% / 0.14),
+    0 18px 50px hsl(0 0% 0% / 0.55);
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  min-width: 0;
+  padding: clamp(2px, 0.8vmin, 7px);
+  border: 0;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 560;
+  line-height: 1.14;
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+
+  /* Unmarked: lit glass, dark ink — the state you actually have to read, so it
+     gets the contrast. Deep enough to read as coloured glass rather than
+     pastel paper, light enough to carry near-black text. */
+  background:
+    radial-gradient(135% 95% at 26% 6%, hsl(var(--h) 90% 96% / 0.85), transparent 50%),
+    linear-gradient(158deg, hsl(var(--h) 72% 80%), hsl(var(--h) 64% 63%));
+  color: hsl(var(--h) 85% 11%);
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--h) 85% 94% / 0.6),
+    inset 0 -10px 20px hsl(var(--h) 70% 34% / 0.28);
+  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease,
+    transform 0.1s ease;
+}
+
+.cell__text {
+  display: block;
+  width: 100%;
+  /* Grid items floor at min-content, which is the longest word; without this
+     a big font pushes the span wider than its column instead of wrapping. */
+  min-width: 0;
+  font-size: var(--fs, 0.8rem);
+}
+
+/* One per unbreakable run of the square's text. Held together by default: the
+   fitter sizes the font so they all fit, and only hands out a break licence to
+   a chunk that could not otherwise be read at all. */
+.chunk {
+  white-space: nowrap;
+}
+
+.chunk--breakable {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.cell:focus-visible {
+  outline: 2px solid hsl(var(--gold) 90% 62%);
+  outline-offset: -3px;
+}
+
+.cell:active {
+  transform: scale(0.97);
+}
+
+/* Marked: the sun comes through — saturated and glowing, which reads as a
+   clearly different state from the lit-but-pale unmarked pane. */
+.cell.is-marked {
+  background:
+    radial-gradient(130% 90% at 28% 8%, hsl(var(--h) 95% 68% / 0.6), transparent 58%),
+    linear-gradient(158deg, hsl(var(--h) 82% 40%), hsl(var(--h) 88% 23%));
+  color: hsl(var(--h) 75% 97%);
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--h) 95% 72% / 0.6),
+    inset 0 0 28px hsl(var(--h) 100% 58% / 0.34),
+    0 0 22px hsl(var(--h) 95% 52% / 0.45);
+  text-shadow: 0 1px 12px hsl(var(--h) 95% 14% / 0.9);
+}
+
+/* a winning line burns gold */
+.cell.is-winning {
+  background:
+    radial-gradient(130% 90% at 28% 8%, hsl(48 100% 86% / 0.8), transparent 58%),
+    linear-gradient(160deg, hsl(var(--gold) 92% 60%), hsl(34 90% 42%));
+  color: hsl(32 70% 12%);
+  box-shadow:
+    inset 0 0 0 1px hsl(48 100% 82% / 0.85),
+    inset 0 0 26px hsl(48 100% 70% / 0.45),
+    0 0 28px hsl(var(--gold) 95% 58% / 0.65);
+  text-shadow: none;
+  animation: ignite 0.5s ease-out;
+}
+
+@keyframes ignite {
+  0% { transform: scale(1); filter: brightness(1); }
+  45% { transform: scale(1.06); filter: brightness(1.5); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.cell--free {
+  font-family: var(--serif);
+  letter-spacing: 0.04em;
+}
+
+.cell--free::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 60% at 50% 50%, hsl(48 100% 80% / 0.25), transparent 70%);
+  pointer-events: none;
+}
+
+/* ---------- long-press peek ---------- */
+
+/* Transparent to the pointer on purpose: the overlay appears *during* a press,
+   and if it could receive the pointer the card would see a pointerleave and
+   cancel the very gesture that opened it. */
+.peek {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 8vw;
+  pointer-events: none;
+  background: hsl(270 40% 4% / 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade-in 0.14s ease-out;
+}
+
+.peek__text {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 7.5vw, 2.75rem);
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink);
+  text-shadow: 0 0 40px hsl(280 80% 60% / 0.5);
+}
+
+/* ---------- win banner ---------- */
+
+.banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  z-index: 50;
+  width: min(420px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  padding: 18px 20px 16px;
+  border: 1px solid hsl(var(--gold) 70% 60% / 0.5);
+  border-radius: 18px;
+  background: linear-gradient(hsl(280 35% 14% / 0.97), hsl(270 40% 9% / 0.97));
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.65), 0 0 40px hsl(var(--gold) 90% 50% / 0.2);
+  text-align: center;
+  animation: rise 0.34s cubic-bezier(0.18, 0.9, 0.3, 1.2);
+}
+
+.banner__word {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: hsl(var(--gold) 92% 64%);
+  text-shadow: 0 0 30px hsl(var(--gold) 95% 55% / 0.6);
+}
+
+.banner__sub {
+  margin: 6px 0 14px;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+
+.banner__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translate(-50%, 28px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- confetti, toast, states ---------- */
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  z-index: 60;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: hsl(270 30% 96%);
+  color: hsl(270 40% 12%);
+  font-size: 0.85rem;
+  font-weight: 560;
+  box-shadow: 0 10px 30px hsl(0 0% 0% / 0.5);
+  animation: rise 0.22s ease-out;
+}
+
+.loading,
+.error {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 10vw;
+  background: var(--nave);
+  text-align: center;
+}
+
+.loading {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  color: var(--ink-dim);
+}
+
+.error__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.5rem;
+}
+
+.error__body {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Landscape on a phone: the card would be unreadably short, so cap its width
+   and let it stay roughly square rather than stretching into letterbox cells. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .card {
+    width: min(100%, 92vh);
+    margin: 0 auto;
+  }
+
+  .hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

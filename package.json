@@ -1,0 +1,15 @@
+{
+  "name": "sunday-school-bingo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bingo for the podcast. Tap a square when it happens.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}
